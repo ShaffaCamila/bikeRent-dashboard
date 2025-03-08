@@ -1,6 +1,6 @@
 # Bike Rental Dashboard ✨
-Proyek ini mempunyai tujuan untuk menganalisis data pada dataset bike sharing (https://www.kaggle.com/datasets/lakshmi25npathi/bike-sharing-dataset). Analisis yang dilakukan mencakup Data Wrangling, Exploratory Data Analysis (EDA), Visualisasi Data, serta Pembuatan Dashboard. 
-Hasild dapat dilihat pada https://bike-rent-insights.streamlit.app/
+Proyek ini mempunyai tujuan untuk menganalisis data pada dataset bike sharing (https://www.kaggle.com/datasets/lakshmi25npathi/bike-sharing-dataset). Analisis yang dilakukan mencakup Data Wrangling, Exploratory Data Analysis (EDA), Visualisasi Data, serta Pembuatan Dashboard. <br>
+Hasil dapat dilihat pada https://bike-rent-insights.streamlit.app/
 
 ## Cara Instalasi
 1. Clone repository ini ke komputer lokal Anda:
