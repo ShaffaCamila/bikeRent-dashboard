@@ -11,27 +11,21 @@ st.set_page_config(
 
 
 def create_monthyear_progress_df(df_day):
-    # Group by month and year to calculate total rentals
     monthyear_progress_df = df_day.groupby(['month', 'year'], observed=False).agg({
         'total_count': 'sum'
     }).reset_index()
     
-    # Create 'month/year' column
     monthyear_progress_df['month/year'] = monthyear_progress_df['month'].astype(str) + '/' + monthyear_progress_df['year'].astype(str)
 
-    # Sort by year first, then by month to maintain chronological order
     monthyear_progress_df = monthyear_progress_df.sort_values(by=['year', 'month']).reset_index(drop=True)
     
     return  monthyear_progress_df
 
-
-# Function to create the monthly orders DataFrame
 def create_monthly_orders_df(df_day):
     monthly_orders_df = df_day.groupby("month", observed=False).agg({
         "total_count": "mean"
     }).reset_index()
 
-    # Mapping month numbers to names
     month_map = {
         1: 'January', 2: 'February', 3: 'March', 4: 'April',
         5: 'May', 6: 'June', 7: 'July', 8: 'August',
@@ -41,13 +35,11 @@ def create_monthly_orders_df(df_day):
 
     return monthly_orders_df
 
-# Function to create the daily orders DataFrame
 def create_daily_orders_df(df_day):
     daily_orders_df = df_day.groupby('weekday', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
 
-    # Mapping weekdays to names
     weekday_map = {
         0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
         4: 'Thursday', 5: 'Friday', 6: 'Saturday'
@@ -56,30 +48,24 @@ def create_daily_orders_df(df_day):
 
     return daily_orders_df
 
-# Function to create season orders DataFrame
 def create_season_orders_df(df_day):
     season_orders_df = df_day.groupby('season', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
 
-    # Define the correct seasonal order
     season_order = ['spring', 'summer', 'fall', 'winter']
     
-    # Convert to categorical with the defined order
     season_orders_df['season'] = pd.Categorical(season_orders_df['season'], categories=season_order, ordered=True)
 
-    # Sort dataframe based on the defined seasonal order
     season_orders_df = season_orders_df.sort_values(by="season")
 
     return season_orders_df
 
-# Function to create hourly trend DataFrame
 def create_hourly_trend_df(hour_df):
     hourly_trend_df = hour_df.groupby('hour', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
 
-    # Convert hour values to "HH.00" format for better visualization
     hourly_trend_df['hour_formatted'] = hourly_trend_df['hour'].astype(str).str.zfill(2) + ".00"
 
     return hourly_trend_df
@@ -103,10 +89,8 @@ def create_workingday_comparison_df(day_df):
 df_day = pd.read_csv('./dashboard/cleaned_day.csv')
 df_hour = pd.read_csv('./dashboard/cleaned_hour.csv')
 
-# Convert date column to datetime
 df_day['date'] = pd.to_datetime(df_day['date'])
 
-# Sidebar for date selection
 with st.sidebar:
     st.title("Bike Rental Dashboard 🚲")
     st.write("Select a Date Range")
@@ -126,10 +110,8 @@ with st.sidebar:
         value=MAX_DATE
     )
 
-# Filter data based on selected date range
 df_filtered = df_day[(df_day['date'].dt.date >= min_date) & (df_day['date'].dt.date <= max_date)]
 
-# Generate DataFrames
 monthyear_progress_df = create_monthyear_progress_df(df_day)
 monthly_orders_df = create_monthly_orders_df(df_day)
 daily_orders_df = create_daily_orders_df(df_day)
@@ -138,7 +120,6 @@ hourly_trend_df = create_hourly_trend_df(df_hour)
 user_comparison_df = create_user_comparison_df(df_day)
 workingday_comparison_df = create_workingday_comparison_df(df_day)
 
-# Calculate key metrics
 total_rentals = df_filtered['total_count'].sum()
 avg_rentals_per_day = df_filtered['total_count'].mean()
 total_registered_users = df_filtered['registered_users'].sum()
@@ -146,7 +127,6 @@ total_casual_users = df_filtered['casual_users'].sum()
 min_orders_per_day = df_filtered['total_count'].min()
 max_orders_per_day = df_filtered['total_count'].max()
 
-# Format numbers with commas
 total_rentals_fmt = f"{int(total_rentals):,}"
 avg_rentals_fmt = f"{int(avg_rentals_per_day):,}"
 total_registered_fmt = f"{int(total_registered_users):,}"
@@ -154,8 +134,7 @@ total_casual_fmt = f"{int(total_casual_users):,}"
 min_orders_fmt = f"{int(min_orders_per_day):,}"
 max_orders_fmt = f"{int(max_orders_per_day):,}"
 
-
-# Header with a title and description
+#Tampilan dashboard
 st.markdown("<h1 style='text-align: center; color: #00A3FF;'>🚴‍♂️ Bike Rental Dashboard 🚴‍♀️</h1>", unsafe_allow_html=True)
 
 st.markdown('''
@@ -176,7 +155,6 @@ st.markdown('''
 
 st.divider()
 
-# Create layout with columns
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -193,7 +171,6 @@ with col3:
 
 st.divider()
 
-# Function to create styled subheaders
 def styled_subheader(text):
     st.markdown(f"<h2 style='color: #00A3FF;'>{text}</h2>", unsafe_allow_html=True)
     
