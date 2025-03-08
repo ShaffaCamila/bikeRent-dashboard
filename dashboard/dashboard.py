@@ -107,21 +107,24 @@ df_hour = pd.read_csv('./dashboard/cleaned_hour.csv')
 df_day['date'] = pd.to_datetime(df_day['date'])
 
 # Sidebar for date selection
-st.sidebar.header("Date Range Selection")
-MIN_DATE = df_day['date'].min().date()
-MAX_DATE = df_day['date'].max().date()
+with st.sidebar:
+    st.title("Bike Rental Dashboard 🚲")
+    st.write("Select a Date Range")
 
-min_date = st.sidebar.date_input(
-    label="Min Date",
-    min_value=MIN_DATE, max_value=MAX_DATE,
-    value=MIN_DATE
-)
+    MIN_DATE = df_day['date'].min().date()
+    MAX_DATE = df_day['date'].max().date()
 
-max_date = st.sidebar.date_input(
-    label="Max Date",
-    min_value=MIN_DATE, max_value=MAX_DATE,
-    value=MAX_DATE
-)
+    min_date = st.date_input(
+        label="Min Date",
+        min_value=MIN_DATE, max_value=MAX_DATE,
+        value=MIN_DATE
+    )
+
+    max_date = st.date_input(
+        label="Max Date",
+        min_value=MIN_DATE, max_value=MAX_DATE,
+        value=MAX_DATE
+    )
 
 # Filter data based on selected date range
 df_filtered = df_day[(df_day['date'].dt.date >= min_date) & (df_day['date'].dt.date <= max_date)]
@@ -136,12 +139,12 @@ user_comparison_df = create_user_comparison_df(df_day)
 workingday_comparison_df = create_workingday_comparison_df(df_day)
 
 # Calculate key metrics
-total_rentals = df_day['total_count'].sum()
-avg_rentals_per_day = df_day['total_count'].mean()
-total_registered_users = df_day['registered_users'].sum()
-total_casual_users = df_day['casual_users'].sum()
-min_orders_per_day = df_day['total_count'].min()
-max_orders_per_day = df_day['total_count'].max()
+total_rentals = df_filtered['total_count'].sum()
+avg_rentals_per_day = df_filtered['total_count'].mean()
+total_registered_users = df_filtered['registered_users'].sum()
+total_casual_users = df_filtered['casual_users'].sum()
+min_orders_per_day = df_filtered['total_count'].min()
+max_orders_per_day = df_filtered['total_count'].max()
 
 # Format numbers with commas
 total_rentals_fmt = f"{int(total_rentals):,}"
