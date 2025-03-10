@@ -14,60 +14,47 @@ def create_monthyear_progress_df(df_day):
     monthyear_progress_df = df_day.groupby(['month', 'year'], observed=False).agg({
         'total_count': 'sum'
     }).reset_index()
-    
     monthyear_progress_df['month/year'] = monthyear_progress_df['month'].astype(str) + '/' + monthyear_progress_df['year'].astype(str)
-
     monthyear_progress_df = monthyear_progress_df.sort_values(by=['year', 'month']).reset_index(drop=True)
-    
     return  monthyear_progress_df
 
 def create_monthly_orders_df(df_day):
     monthly_orders_df = df_day.groupby("month", observed=False).agg({
         "total_count": "mean"
     }).reset_index()
-
     month_map = {
         1: 'January', 2: 'February', 3: 'March', 4: 'April',
         5: 'May', 6: 'June', 7: 'July', 8: 'August',
         9: 'September', 10: 'October', 11: 'November', 12: 'December'
     }
     monthly_orders_df["month"] = monthly_orders_df["month"].map(month_map)
-
     return monthly_orders_df
 
 def create_daily_orders_df(df_day):
     daily_orders_df = df_day.groupby('weekday', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
-
     weekday_map = {
         0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
         4: 'Thursday', 5: 'Friday', 6: 'Saturday'
     }
     daily_orders_df['weekday'] = daily_orders_df['weekday'].map(weekday_map)
-
     return daily_orders_df
 
 def create_season_orders_df(df_day):
     season_orders_df = df_day.groupby('season', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
-
     season_order = ['spring', 'summer', 'fall', 'winter']
-    
     season_orders_df['season'] = pd.Categorical(season_orders_df['season'], categories=season_order, ordered=True)
-
     season_orders_df = season_orders_df.sort_values(by="season")
-
     return season_orders_df
 
 def create_hourly_trend_df(hour_df):
     hourly_trend_df = hour_df.groupby('hour', observed=False).agg({
         'total_count': ['max', 'min', 'sum', 'mean']
     }).reset_index()
-
     hourly_trend_df['hour_formatted'] = hourly_trend_df['hour'].astype(str).str.zfill(2) + ".00"
-
     return hourly_trend_df
 
 def create_user_comparison_df(day_df):
@@ -75,7 +62,6 @@ def create_user_comparison_df(day_df):
         'registered_users': ['sum', 'mean'],
         'casual_users': ['sum', 'mean']
     }).map(lambda x: round(x, 2))
-    
     return user_comparison_df
 
 def create_workingday_comparison_df(day_df):
@@ -88,37 +74,29 @@ def create_workingday_comparison_df(day_df):
 # Load datasets
 df_day = pd.read_csv('./dashboard/cleaned_day.csv')
 df_hour = pd.read_csv('./dashboard/cleaned_hour.csv')
-
 df_day['date'] = pd.to_datetime(df_day['date'])
+df_hour['date'] = pd.to_datetime(df_hour['date'])
 
 with st.sidebar:
     st.title("Bike Rental Dashboard 🚲")
     st.write("Select a Date Range")
+    MIN_DATE, MAX_DATE = df_day['date'].min().date(), df_day['date'].max().date()
+    min_date = st.date_input("Min Date", min_value=MIN_DATE, max_value=MAX_DATE, value=MIN_DATE)
+    max_date = st.date_input("Max Date", min_value=MIN_DATE, max_value=MAX_DATE, value=MAX_DATE)
 
-    MIN_DATE = df_day['date'].min().date()
-    MAX_DATE = df_day['date'].max().date()
-
-    min_date = st.date_input(
-        label="Min Date",
-        min_value=MIN_DATE, max_value=MAX_DATE,
-        value=MIN_DATE
-    )
-
-    max_date = st.date_input(
-        label="Max Date",
-        min_value=MIN_DATE, max_value=MAX_DATE,
-        value=MAX_DATE
-    )
-
+# Apply date filter
 df_filtered = df_day[(df_day['date'].dt.date >= min_date) & (df_day['date'].dt.date <= max_date)]
+df_hour_filtered = df_hour[df_hour['date'].dt.date.isin(df_filtered['date'].dt.date)]
 
-monthyear_progress_df = create_monthyear_progress_df(df_day)
-monthly_orders_df = create_monthly_orders_df(df_day)
-daily_orders_df = create_daily_orders_df(df_day)
-season_orders_df = create_season_orders_df(df_day)
-hourly_trend_df = create_hourly_trend_df(df_hour)
-user_comparison_df = create_user_comparison_df(df_day)
-workingday_comparison_df = create_workingday_comparison_df(df_day)
+# Generate filtered dataframes for visualization
+monthyear_progress_df = create_monthyear_progress_df(df_filtered)
+monthly_orders_df = create_monthly_orders_df(df_filtered)
+daily_orders_df = create_daily_orders_df(df_filtered)
+season_orders_df = create_season_orders_df(df_filtered)
+user_comparison_df = create_user_comparison_df(df_filtered)
+workingday_comparison_df = create_workingday_comparison_df(df_filtered)
+hourly_trend_df = create_hourly_trend_df(df_hour_filtered)
+
 
 total_rentals = df_filtered['total_count'].sum()
 avg_rentals_per_day = df_filtered['total_count'].mean()
